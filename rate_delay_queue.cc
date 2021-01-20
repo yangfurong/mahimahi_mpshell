@@ -6,7 +6,11 @@ void RateDelayQueue::write_packets( FileDescriptor & fd ) {
     /* Move packets from delay_queue_ into cell_queue_ */
     string next_packet = delay_queue_.get_next();
     while ( not next_packet.empty() ) {
-        cell_queue_.read_packet( next_packet );
+        queue_size += next_packet.length();
+        srand(time(NULL));
+        float rate = rand() % 1000 / (float)(1000);
+        if (rate > loss)
+            cell_queue_.read_packet( next_packet );
         next_packet = delay_queue_.get_next();
     }
 

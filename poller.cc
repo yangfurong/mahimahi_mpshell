@@ -1,5 +1,6 @@
 /* -*-mode:c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
+#include <numeric>
 #include <algorithm>
 #include "poller.hh"
 #include "util.hh"
@@ -31,7 +32,7 @@ Poller::Result Poller::poll( const int & timeout_ms )
     }
 
     /* Quit if no member in pollfds_ has a non-zero direction */
-    if ( not accumulate( pollfds_.begin(), pollfds_.end(), false,
+    if ( not std::accumulate( pollfds_.begin(), pollfds_.end(), false,
                          [] ( bool acc, pollfd x ) { return acc or x.events; } ) ) {
         return Result::Type::Exit;
     }

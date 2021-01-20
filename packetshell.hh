@@ -34,12 +34,20 @@ public:
                        char ** const user_environment,
                        const uint64_t cell_delay,
                        const uint64_t wifi_delay,
+                       const float cell_loss,
+                       const float wifi_loss,
+                       const uint64_t cell_queue_size,
+                       const uint64_t wifi_queue_size,
                        const std::string & cell_uplink,
                        const std::string & wifi_uplink,
                        const std::vector< std::string > & command );
 
     void start_downlink( const uint64_t cell_delay,
                          const uint64_t wifi_delay,
+                         const float cell_loss,
+                         const float wifi_loss,
+                         const uint64_t cell_queue_size,
+                         const uint64_t wifi_queue_size,
                          const std::string & cell_downlink,
                          const std::string & wifi_downlink );
 

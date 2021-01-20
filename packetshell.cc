@@ -43,6 +43,10 @@ void PacketShell::start_uplink( const std::string & shell_prefix,
                                 char ** const user_environment,
                                 const uint64_t cell_delay,
                                 const uint64_t wifi_delay,
+                                const float cell_loss,
+                                const float wifi_loss,
+                                const uint64_t cell_queue_size,
+                                const uint64_t wifi_queue_size,
                                 const std::string & cell_uplink,
                                 const std::string & wifi_uplink,
                                 const vector< string > & command )
@@ -71,6 +75,10 @@ void PacketShell::start_uplink( const std::string & shell_prefix,
             run( {"/sbin/ip", "route", "add", "default", "via", egress_ingress.at(1).first.ip(), "dev", "ingress-wifi","table", "1"} );
             run( {"/sbin/ip", "rule", "add", "from", egress_ingress.at(1).second.ip(),"table", "1"} );
             run( {"/sbin/ip", "rule", "add", "to", egress_ingress.at(1).second.ip(), "table", "1"} );
+            run( {"/sbin/ip", "route", "add", egress_ingress.at(0).first.ip(), "dev", "ingress-cell", "src", egress_ingress.at(0).second.ip(), "table", "2"} );
+            run( {"/sbin/ip", "route", "add", "default", "via", egress_ingress.at(0).first.ip(), "dev", "ingress-cell","table", "2"} );
+            run( {"/sbin/ip", "rule", "add", "from", egress_ingress.at(0).second.ip(),"table", "2"} );
+            run( {"/sbin/ip", "rule", "add", "to", egress_ingress.at(0).second.ip(), "table", "2"} );
             run( {"/sbin/ip", "route", "flush", "cache"} );
 
             /* create DNS proxy if nameserver address is local */
@@ -93,14 +101,14 @@ void PacketShell::start_uplink( const std::string & shell_prefix,
                 } );
 
             ChildProcess cell_ferry( [&]() {
-                    RateDelayQueue cell_queue( cell_delay, cell_uplink );
+                    RateDelayQueue cell_queue( cell_delay, cell_loss, cell_queue_size, cell_uplink );
                     return packet_ferry( cell_queue, ingress_cell_tun.fd(), cell_pipe_.first,
                                          move( dns_inside ),
                                          {} );
                 } );
 
             ChildProcess wifi_ferry( [&]() {
-                    RateDelayQueue wifi_queue( wifi_delay, wifi_uplink);
+                    RateDelayQueue wifi_queue( wifi_delay, wifi_loss, wifi_queue_size, wifi_uplink);
                     return packet_ferry( wifi_queue, ingress_wifi_tun.fd(), wifi_pipe_.first,
                                          nullptr,
                                          {} );
@@ -115,13 +123,17 @@ void PacketShell::start_uplink( const std::string & shell_prefix,
 
 void PacketShell::start_downlink( const uint64_t cell_delay,
                                   const uint64_t wifi_delay,
+                                  const float cell_loss,
+                                  const float wifi_loss,
+                                  const uint64_t cell_queue_size,
+                                  const uint64_t wifi_queue_size,
                                   const std::string & cell_downlink,
                                   const std::string & wifi_downlink )
 {
     child_processes_.emplace_back( [&] () {
             drop_privileges();
 
-            RateDelayQueue cell_queue( cell_delay, cell_downlink );
+            RateDelayQueue cell_queue( cell_delay, cell_loss, cell_queue_size, cell_downlink );
             return packet_ferry( cell_queue, egress_cell_tun_.fd(),
                                  cell_pipe_.second, move( dns_outside_ ), {} );
         } );
@@ -129,7 +141,7 @@ void PacketShell::start_downlink( const uint64_t cell_delay,
     child_processes_.emplace_back( [&] () {
             drop_privileges();
 
-            RateDelayQueue wifi_queue( wifi_delay, wifi_downlink );
+            RateDelayQueue wifi_queue( wifi_delay, wifi_loss, wifi_queue_size, wifi_downlink );
             return packet_ferry( wifi_queue, egress_wifi_tun_.fd(),
                                  wifi_pipe_.second, nullptr, {} );
         } );
