@@ -11,7 +11,7 @@ using namespace std;
 
 CellQueue::CellQueue( const std::string & filename, 
                       const std::string & logfile,
-                      const uint64_t queue_size )
+                      const uint64_t queue_size, const int & log_on)
     : next_delivery_( 0 ),
       schedule_(),
       init_timestamp_( timestamp() ),
@@ -50,19 +50,20 @@ CellQueue::CellQueue( const std::string & filename,
     }
 
     /* open logfile if called for */
-    if ( not logfile.empty() ) {
-        log_.reset( new ofstream( logfile ) );
-        if ( not log_->good() ) {
-            throw runtime_error( logfile + ": error opening for writing" );
+    if (log_on) {
+        if ( not logfile.empty() ) {
+            log_.reset( new ofstream( logfile ) );
+            if ( not log_->good() ) {
+                throw runtime_error( logfile + ": error opening for writing" );
+            }
+
+            *log_ << "# mahimahi mm-link ( MP ) [" << filename << "] > " << logfile << endl;
+            *log_ << "# command line: not available" << endl;
+            *log_ << "# queue: not available" << endl;
+            *log_ << "# init timestamp: " << base_timestamp_ << endl;
+            *log_ << "# base timestamp: " << base_timestamp_ << endl;
         }
-
-        *log_ << "# mahimahi mm-link ( MP ) [" << filename << "] > " << logfile << endl;
-        *log_ << "# command line: not available" << endl;
-        *log_ << "# queue: not available" << endl;
-        *log_ << "# init timestamp: " << base_timestamp_ << endl;
-        *log_ << "# base timestamp: " << base_timestamp_ << endl;
     }
-
 }
 
 void CellQueue::record_arrival( const uint64_t arrival_time, const size_t pkt_size ) {
@@ -105,9 +106,9 @@ void CellQueue::read_packet( const string & contents )
     if (contents.size() <= queue_size_) {
         queue_size_ -= contents.size();
         packet_queue_.emplace( contents );
-        record_arrival(packet_queue_.back().arrival_time - init_timestamp_, packet_queue_.back().contents.size());
+        //record_arrival(packet_queue_.back().arrival_time - init_timestamp_, packet_queue_.back().contents.size());
     } else {
-        record_drop(timestamp() - init_timestamp_, 1, contents.size());
+        //record_drop(timestamp() - init_timestamp_, 1, contents.size());
     }
 }
 
@@ -118,7 +119,7 @@ uint64_t CellQueue::next_delivery_time( void ) const
 
 void CellQueue::use_a_delivery_opportunity( void )
 {
-    record_departure_opportunity();
+    //record_departure_opportunity();
 
     next_delivery_ = (next_delivery_ + 1) % schedule_.size();
 

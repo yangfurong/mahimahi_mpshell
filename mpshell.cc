@@ -20,7 +20,7 @@ int main( int argc, char *argv[] )
             "cell_downlink_log "
             "wifi_delay wifi_uplink wifi_downlink wifi_up_loss_float "
             "wifi_down_loss_float wifi_up_queue_bytes wifi_down_queue_bytes "
-            "wifi_uplink_log wifi_downlink_log program" );
+            "wifi_uplink_log wifi_downlink_log log_on program" );
         }
 
         const uint64_t cell_delay = myatoi( argv[ 1 ] );
@@ -42,9 +42,10 @@ int main( int argc, char *argv[] )
         const uint64_t wifi_down_queue = myatoi(argv[ 16 ]);
         const std::string wifi_uplink_log = argv[ 17 ];
         const std::string wifi_downlink_log = argv[ 18 ];
+        const int log_on = myatoi(argv[19]);
 
         vector< string > program_to_run;
-        for ( int num_args = 19; num_args < argc; num_args++ ) {
+        for ( int num_args = 20; num_args < argc; num_args++ ) {
             program_to_run.emplace_back( string( argv[ num_args ] ) );
         }
 
@@ -62,13 +63,14 @@ int main( int argc, char *argv[] )
                                    wifi_uplink,
                                    cell_uplink_log,
                                    wifi_uplink_log,
+                                   log_on,
                                    program_to_run);
 
         mp_shell_app.start_downlink( cell_delay, wifi_delay, cell_down_loss, 
                                      wifi_down_loss, cell_down_queue, 
                                      wifi_down_queue, cell_downlink, 
                                      wifi_downlink, cell_downlink_log,
-                                     wifi_downlink_log);
+                                     wifi_downlink_log, log_on);
         return mp_shell_app.wait_for_exit();
     } catch ( const Exception & e ) {
         e.perror();

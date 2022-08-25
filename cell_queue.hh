@@ -44,7 +44,7 @@ private:
     void record_departure( const uint64_t departure_time, const QueuedPacket & packet );
 
 public:
-    CellQueue( const std::string & filename, const std::string & logfile, uint64_t queue_size);
+    CellQueue( const std::string & filename, const std::string & logfile, uint64_t queue_size, const int & log_on);
 
     void read_packet( const std::string & contents );
 

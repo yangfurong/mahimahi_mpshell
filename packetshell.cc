@@ -51,6 +51,7 @@ void PacketShell::start_uplink( const std::string & shell_prefix,
                                 const std::string & wifi_uplink,
                                 const std::string & cell_uplink_log,
                                 const std::string & wifi_uplink_log,
+                                const int & log_on,
                                 const vector< string > & command )
 {
     /* Fork */
@@ -103,14 +104,14 @@ void PacketShell::start_uplink( const std::string & shell_prefix,
                 } );
 
             ChildProcess cell_ferry( [&]() {
-                    RateDelayQueue cell_queue( cell_delay, cell_loss, cell_queue_size, cell_uplink, cell_uplink_log);
+                    RateDelayQueue cell_queue( cell_delay, cell_loss, cell_queue_size, cell_uplink, cell_uplink_log, log_on);
                     return packet_ferry( cell_queue, ingress_cell_tun.fd(), cell_pipe_.first,
                                          move( dns_inside ),
                                          {} );
                 } );
 
             ChildProcess wifi_ferry( [&]() {
-                    RateDelayQueue wifi_queue( wifi_delay, wifi_loss, wifi_queue_size, wifi_uplink, wifi_uplink_log);
+                    RateDelayQueue wifi_queue( wifi_delay, wifi_loss, wifi_queue_size, wifi_uplink, wifi_uplink_log, log_on);
                     return packet_ferry( wifi_queue, ingress_wifi_tun.fd(), wifi_pipe_.first,
                                          nullptr,
                                          {} );
@@ -132,12 +133,13 @@ void PacketShell::start_downlink( const uint64_t cell_delay,
                                   const std::string & cell_downlink,
                                   const std::string & wifi_downlink,
                                   const std::string & cell_downlink_log,
-                                  const std::string & wifi_downlink_log)
+                                  const std::string & wifi_downlink_log,
+                                  const int & log_on)
 {
     child_processes_.emplace_back( [&] () {
             drop_privileges();
 
-            RateDelayQueue cell_queue( cell_delay, cell_loss, cell_queue_size, cell_downlink, cell_downlink_log);
+            RateDelayQueue cell_queue( cell_delay, cell_loss, cell_queue_size, cell_downlink, cell_downlink_log, log_on);
             return packet_ferry( cell_queue, egress_cell_tun_.fd(),
                                  cell_pipe_.second, move( dns_outside_ ), {} );
         } );
@@ -145,7 +147,7 @@ void PacketShell::start_downlink( const uint64_t cell_delay,
     child_processes_.emplace_back( [&] () {
             drop_privileges();
 
-            RateDelayQueue wifi_queue( wifi_delay, wifi_loss, wifi_queue_size, wifi_downlink, wifi_downlink_log);
+            RateDelayQueue wifi_queue( wifi_delay, wifi_loss, wifi_queue_size, wifi_downlink, wifi_downlink_log, log_on);
             return packet_ferry( wifi_queue, egress_wifi_tun_.fd(),
                                  wifi_pipe_.second, nullptr, {} );
         } );
