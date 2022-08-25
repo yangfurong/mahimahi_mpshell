@@ -40,6 +40,8 @@ public:
                        const uint64_t wifi_queue_size,
                        const std::string & cell_uplink,
                        const std::string & wifi_uplink,
+                       const std::string & cell_uplink_log,
+                       const std::string & wifi_uplink_log,
                        const std::vector< std::string > & command );
 
     void start_downlink( const uint64_t cell_delay,
@@ -49,7 +51,9 @@ public:
                          const uint64_t cell_queue_size,
                          const uint64_t wifi_queue_size,
                          const std::string & cell_downlink,
-                         const std::string & wifi_downlink );
+                         const std::string & wifi_downlink,
+                         const std::string & cell_downlink_log,
+                         const std::string & wifi_downlink_log);
 
     int wait_on_processes( std::vector<ChildProcess> && process_vector );
     int wait_for_exit() { return wait_on_processes( std::move( child_processes_ ) ); }
